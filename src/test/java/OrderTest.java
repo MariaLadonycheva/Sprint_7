@@ -4,7 +4,9 @@ import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -28,10 +30,10 @@ public class OrderTest {
     @Parameterized.Parameters
     public static Collection<Object[]> testData() {
         return Arrays.asList(new Object[][]{
-                {new Order("Naruto", "Uchiha", "Konoha, 142 apt.", 4, "+7 800 355 35 35", 1, "2020-06-06", "Saske, come back to Konoha", List.of("BLACK"))},
-                {new Order("Sakura", "Haruno", "Konoha, 143 apt.", 5, "+7 800 355 35 36", 2, "2020-06-07", "I'm very strong", List.of("GREY"))},
-                {new Order("Kakashi", "Hatake", "Konoha, 144 apt.", 6, "+7 800 355 35 37", 8, "2020-06-08", "I like reading books", List.of("BLACK", "GREY"))},
-                {new Order("Hinata", "Hyuga", "Konoha, 145 apt.", 7, "+7 800 355 35 38", 3, "2020-06-09", "Naruto is my everything", null)}
+                {new Order("Naruto", "Uchiha", "Konoha, 142 apt.", 4, "+7 800 355 35 35", 1, "2024-09-06", "Saske, come back to Konoha", List.of("BLACK"))},
+                {new Order("Sakura", "Haruno", "Konoha, 143 apt.", 5, "+7 800 355 35 36", 3, "2024-06-07", "I'm very strong", List.of("GREY"))},
+                {new Order("Kakashi", "Hatake", "Konoha, 144 apt.", 6, "+7 800 355 35 37", 4, "2024-06-08", "I like reading books", List.of("BLACK", "GREY"))},
+                {new Order("Hinata", "Hyuga", "Konoha, 145 apt.", 7, "+7 800 355 35 38", 8, "2024-06-09", "Naruto is my everything", null)}
         });
     }
 
@@ -40,36 +42,42 @@ public class OrderTest {
         RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
     }
 
-
-    @org.junit.Test
+    @Test
     @DisplayName("Check create a new order")
+    public void createOrderTest() {
+        createOrder();
+    }
+
     @Step("Создание заказа")
-    public void createOrder() {
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(gson.toJson(order))
-                        .when()
-                        .post("/api/v1/orders");
-        response.then().assertThat().body("track", notNullValue())
-                .and()
-                .statusCode(201);
+    private void createOrder() {
+        Response response = given()
+                .header("Content-type", "application/json")
+                .body(gson.toJson(order))
+                .when()
+                .post("/api/v1/orders");
+        response.then()
+                .assertThat()
+                .statusCode(201)
+                .body("track", notNullValue());
         track = response.path("track");
     }
 
-        @Step("Отмена заказа")
-        private void cancelOrder(){
-            if(track != null) {
-                given()
-                        .queryParam("track", track)
-                        .when()
-                        .put("/api/v1/orders/cancel")
-                        .then()
-                        .assertThat()
-                        .statusCode(200);
-            }
-        }
-
+    @After
+    public void tearDown() {
+        cancelOrder();
     }
+
+    @Step("Отмена заказа")
+    private void cancelOrder() {
+        if (track != null) {
+            given()
+                    .queryParam("track", track)
+                    .when()
+                    .put("/api/v1/orders/cancel")
+                    .then()
+                    .assertThat()
+                    .statusCode(200);
+        }
+    }
+}
 

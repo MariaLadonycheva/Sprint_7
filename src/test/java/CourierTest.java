@@ -5,6 +5,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +39,8 @@ public class CourierTest {
     @Parameters(name = "{0}")
     public static Collection<Object[]> testData() {
         return Arrays.asList(new Object[][]{
-                {"Check create a new courier with all fields", new Courier("mlcourier001", "qwerty", "Mary"), null, 201},
-                {"Check create a new courier with required fields", new Courier("mlcourier140", "qwerty", null), null, 201},
+                {"Check create a new courier with all fields", new Courier("mlcourier048", "qwerty", "Mary"), null, 201},
+                {"Check create a new courier with required fields", new Courier("mlcourier177", "qwerty", null), null, 201},
                 {"Check creating a courier with a repeated login", new Courier("mlcourier08", "qwerty", "Mary"), "Этот логин уже используется. Попробуйте другой.", 409},
                 {"Creating a courier without a login", new Courier(null, "qwerty", "Mary"), "Недостаточно данных для создания учетной записи", 400},
                 {"Creating a courier without a password", new Courier("mlcourier10", null, "Mary"), "Недостаточно данных для создания учетной записи", 400}
@@ -57,7 +58,6 @@ public class CourierTest {
         createCourier();
         if (expectedStatusCode == 201) {
             loginAndGetCourierId();
-            deleteCourier();
         }
     }
 
@@ -96,6 +96,11 @@ public class CourierTest {
         }
     }
 
+    @After
+
+    public void tearDown() {
+        deleteCourier();
+    }
 
     @Step("Удаление курьера")
     private void deleteCourier() {
@@ -107,4 +112,5 @@ public class CourierTest {
                     .then().assertThat().statusCode(200);
         }
     }
+
 }
